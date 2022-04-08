@@ -1,36 +1,27 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SudokuApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class SudokuApp extends StatelessWidget {
+  const SudokuApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Sudoku',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const SudokuHomePage(title: 'Sudoku'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class SudokuHomePage extends StatefulWidget {
+  const SudokuHomePage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -44,10 +35,10 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<SudokuHomePage> createState() => _SudokuHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _SudokuHomePageState extends State<SudokuHomePage> {
   int _counter = 0;
 
   void _incrementCounter() {
@@ -57,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      _counter += 1;
     });
   }
 
@@ -78,38 +69,209 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            Column(
+              children: [
+                GestureDetector(
+                  child: Container(
+                    child: const Icon(Icons.add, size: 48, color: Colors.white),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.blue,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const GameWidget()),
+                    );
+                  },
+                ),
+              ],
+              mainAxisAlignment: MainAxisAlignment.center,
             ),
           ],
+          mainAxisAlignment: MainAxisAlignment.center,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class GameWidget extends StatefulWidget {
+  const GameWidget({Key? key}) : super(key: key);
+
+  @override
+  State<GameWidget> createState() => _GameState();
+}
+
+class _GameState extends State<GameWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: SafeArea(child: SudokuBoard()),
+    );
+  }
+}
+
+class SudokuBoard extends StatefulWidget {
+  const SudokuBoard({Key? key}) : super(key: key);
+
+  @override
+  State<SudokuBoard> createState() => _SudokuState();
+}
+
+class _SudokuState extends State<SudokuBoard> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        const Divider(height: 3),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        const Divider(height: 3),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+        Row(children: const [
+          Cell(text: "1"),
+          Cell(text: "2"),
+          Cell(text: "3"),
+          VerticalDivider(width: 3),
+          Cell(text: "4"),
+          Cell(text: "5"),
+          Cell(text: "6"),
+          VerticalDivider(width: 3),
+          Cell(text: "7"),
+          Cell(text: "8"),
+          Cell(text: "9")
+        ], mainAxisAlignment: MainAxisAlignment.center),
+      ],
+    );
+  }
+}
+
+class Cell extends StatelessWidget {
+  final String text;
+
+  const Cell({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black),
+      ),
+      child: Center(
+          child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: Text(text,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+      )),
     );
   }
 }
