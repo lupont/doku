@@ -2,7 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import 'package:sudoku/picker.dart';
+import 'picker.dart';
+import 'util.dart';
+
+const DIM = 9;
 
 void main() {
   runApp(const SudokuApp());
@@ -19,7 +22,8 @@ class SudokuApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const SudokuHomePage(title: 'Sudoku'),
+      /* home: const SudokuHomePage(title: 'Sudoku'), */
+      home: const GameWidget(),
     );
   }
 }
@@ -100,24 +104,55 @@ class SudokuBoard extends StatefulWidget {
   State<SudokuBoard> createState() => _SudokuState();
 }
 
-List<int?> generateBoard() {
-  var rng = Random();
-  return List.generate(81, (i) {
-    if (rng.nextInt(6) <= 1) {
-      return rng.nextInt(8) + 1;
-    }
-    return null;
-  });
-}
-
 class _SudokuState extends State<SudokuBoard> {
   int? _selectedIndex;
 
-  final List<int?> _values = generateBoard();
+  List<int?> _values = List.generate(81, (_) => null);
 
-  @override
-  void initState() {
-    super.initState();
+  void _generateBoard() {
+    do {
+      setState(() {
+        _values = List.generate(81, (_) => null);
+      });
+    } while (!_solve());
+  }
+
+  bool _solve() {
+    if (isFinished(_values)) {
+      return true;
+    }
+
+    List<int> values = List.generate(9, (i) => i + 1);
+    List<int> usedValues = [];
+    var rng = Random();
+
+    for (int i = 0; i < DIM; ++i) {
+      for (int j = 0; j < DIM; ++j) {
+        int index = i * DIM + j;
+        if (_values[index] != null) continue;
+
+        while (usedValues.length < values.length) {
+          int value = values[rng.nextInt(values.length)];
+          while (usedValues.contains(value)) {
+            value = values[rng.nextInt(values.length)];
+          }
+          usedValues.add(value);
+
+          if (isValid(value, index, _values)) {
+            setState(() {
+              _values[index] = value;
+            });
+
+            if (_solve()) {
+              return true;
+            }
+          }
+        }
+        usedValues = [];
+      }
+    }
+
+    return false;
   }
 
   void setSelected(int? index) {
@@ -132,9 +167,19 @@ class _SudokuState extends State<SudokuBoard> {
     return List.generate(
       81,
       (i) {
+        bool buddy = false;
+        if (_selectedIndex != null) {
+          int y = _selectedIndex! % DIM;
+          int x = _selectedIndex! ~/ DIM;
+          var sets = getBuddies(x, y)!;
+          buddy = sets['row']!.contains(i) ||
+              sets['col']!.contains(i) ||
+              sets['sub']!.contains(i);
+        }
         var cell = Cell(
           index: i,
           value: _values[i],
+          buddy: buddy,
           highlight: _selectedIndex == null
               ? false
               : _values[_selectedIndex!] == _values[i],
@@ -168,7 +213,19 @@ class _SudokuState extends State<SudokuBoard> {
         Picker(
           enabled: _selectedIndex != null,
           onTap: (value) {
-            setState(() => _values[_selectedIndex!] = value);
+            setState(() {
+              if (_values[_selectedIndex!] == value) {
+                _values[_selectedIndex!] = null;
+              } else {
+                _values[_selectedIndex!] = value;
+              }
+            });
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.start),
+          onPressed: () {
+            _generateBoard();
           },
         ),
       ],
@@ -181,6 +238,7 @@ class Cell extends StatefulWidget {
   final int? value;
   final bool selected;
   final bool highlight;
+  final bool buddy;
 
   const Cell({
     Key? key,
@@ -188,6 +246,7 @@ class Cell extends StatefulWidget {
     required this.value,
     required this.selected,
     required this.highlight,
+    required this.buddy,
   }) : super(key: key);
 
   @override
@@ -197,7 +256,11 @@ class Cell extends StatefulWidget {
 class _CellState extends State<Cell> {
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = widget.selected ? Colors.blue : Colors.white;
+    Color backgroundColor = widget.selected
+        ? Colors.blue
+        : widget.buddy
+            ? const Color.fromARGB(255, 230, 230, 230)
+            : Colors.white;
     Color foregroundColor = widget.selected
         ? Colors.white
         : widget.highlight
