@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:sudoku/picker.dart';
+
 void main() {
   runApp(const SudokuApp());
 }
@@ -76,10 +78,13 @@ class GameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SudokuBoard(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            SudokuBoard(),
+          ],
         ),
       ),
     );
@@ -94,33 +99,81 @@ class SudokuBoard extends StatefulWidget {
 }
 
 class _SudokuState extends State<SudokuBoard> {
+  int? _selectedIndex;
+
+  final List<int?> _values = List.generate(81, (_) => null);
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void setSelected(int? index) {
+    if (_selectedIndex == index) {
+      _selectedIndex = null;
+    } else {
+      _selectedIndex = index;
+    }
+  }
+
+  List<Widget> _getCells() {
+    return List.generate(
+      81,
+      (i) {
+        var cell = Cell(
+          index: i,
+          value: _values[i],
+          selected: _selectedIndex == i,
+        );
+        double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
+        double bottom = i >= 18 && i <= 26 || i >= 45 && i <= 53 ? 3 : 0;
+        return Container(
+          child: GestureDetector(
+            child: cell,
+            onTap: () {
+              setState(() => setSelected(i));
+            },
+          ),
+          padding: EdgeInsets.only(right: right, bottom: bottom),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 9,
-      shrinkWrap: true,
-      padding: const EdgeInsets.all(16),
-      children: List.generate(
-        81,
-        (i) {
-          var cell = Cell(index: i);
-          double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
-          double bottom = i >= 18 && i <= 26 || i >= 45 && i <= 53 ? 3 : 0;
-          return Container(
-            child: cell,
-            padding: EdgeInsets.only(right: right, bottom: bottom),
-          );
-        },
-      ),
+    return Column(
+      children: [
+        GridView.count(
+          crossAxisCount: 9,
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(16),
+          children: _getCells(),
+        ),
+        Picker(
+          enabled: _selectedIndex != null,
+          onTap: (value) {
+            setState(() {
+              _values[_selectedIndex!] = value;
+            });
+          },
+        ),
+      ],
     );
   }
 }
 
 class Cell extends StatefulWidget {
-  int index;
-  bool visible = true;
+  final int index;
+  final int? value;
+  final bool selected;
 
-  Cell({Key? key, required this.index}) : super(key: key);
+  const Cell({
+    Key? key,
+    required this.index,
+    required this.value,
+    required this.selected,
+  }) : super(key: key);
 
   @override
   State<Cell> createState() => _CellState();
@@ -129,30 +182,26 @@ class Cell extends StatefulWidget {
 class _CellState extends State<Cell> {
   @override
   Widget build(BuildContext context) {
+    Color backgroundColor = widget.selected ? Colors.blue : Colors.white;
+    Color foregroundColor = widget.selected ? Colors.white : Colors.black;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          widget.visible ^= true;
-        });
-      },
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
+          color: backgroundColor,
           border: Border.all(
             color: Colors.black,
           ),
         ),
         child: Center(
-          child: Visibility(
-            child: Text(
-              "${widget.index}",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
+          child: Text(
+            widget.value == null ? "" : widget.value.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: foregroundColor,
+              fontSize: 24,
             ),
-            visible: widget.visible,
           ),
         ),
       ),
