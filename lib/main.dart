@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:sudoku/picker.dart';
@@ -98,10 +100,20 @@ class SudokuBoard extends StatefulWidget {
   State<SudokuBoard> createState() => _SudokuState();
 }
 
+List<int?> generateBoard() {
+  var rng = Random();
+  return List.generate(81, (i) {
+    if (rng.nextInt(6) <= 1) {
+      return rng.nextInt(8) + 1;
+    }
+    return null;
+  });
+}
+
 class _SudokuState extends State<SudokuBoard> {
   int? _selectedIndex;
 
-  final List<int?> _values = List.generate(81, (_) => null);
+  final List<int?> _values = generateBoard();
 
   @override
   void initState() {
