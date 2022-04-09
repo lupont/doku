@@ -123,6 +123,9 @@ class _SudokuState extends State<SudokuBoard> {
         var cell = Cell(
           index: i,
           value: _values[i],
+          highlight: _selectedIndex == null
+              ? false
+              : _values[_selectedIndex!] == _values[i],
           selected: _selectedIndex == i,
         );
         double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
@@ -153,9 +156,7 @@ class _SudokuState extends State<SudokuBoard> {
         Picker(
           enabled: _selectedIndex != null,
           onTap: (value) {
-            setState(() {
-              _values[_selectedIndex!] = value;
-            });
+            setState(() => _values[_selectedIndex!] = value);
           },
         ),
       ],
@@ -167,12 +168,14 @@ class Cell extends StatefulWidget {
   final int index;
   final int? value;
   final bool selected;
+  final bool highlight;
 
   const Cell({
     Key? key,
     required this.index,
     required this.value,
     required this.selected,
+    required this.highlight,
   }) : super(key: key);
 
   @override
@@ -183,7 +186,11 @@ class _CellState extends State<Cell> {
   @override
   Widget build(BuildContext context) {
     Color backgroundColor = widget.selected ? Colors.blue : Colors.white;
-    Color foregroundColor = widget.selected ? Colors.white : Colors.black;
+    Color foregroundColor = widget.selected
+        ? Colors.white
+        : widget.highlight
+            ? Colors.blue
+            : Colors.black;
     return GestureDetector(
       child: Container(
         width: 40,
