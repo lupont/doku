@@ -22,8 +22,7 @@ class SudokuApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      /* home: const SudokuHomePage(title: 'Sudoku'), */
-      home: const GameWidget(),
+      home: const SudokuHomePage(title: 'Sudoku'),
     );
   }
 }
@@ -36,13 +35,9 @@ class SudokuHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Row(
           children: <Widget>[
             Column(
@@ -114,41 +109,48 @@ class _SudokuState extends State<SudokuBoard> {
       setState(() {
         _values = List.generate(81, (_) => null);
       });
-    } while (!_solve());
+    } while (!_solve(_values));
+
+    List<int> indices = List.generate(81, (i) => i)..shuffle();
+
+    int i = 0;
+
+    while (i < indices.length) {
+      int index = indices[i];
+      int? oldValue = _values[index];
+      setState(() => _values[index] = null);
+
+      List<int?> copy = [..._values];
+
+      if (!_solve(copy)) {
+        setState(() => _values[index] = oldValue);
+      }
+
+      ++i;
+    }
   }
 
-  bool _solve() {
-    if (isFinished(_values)) {
+  bool _solve(List<int?> board) {
+    if (isFinished(board)) {
       return true;
     }
 
-    List<int> values = List.generate(9, (i) => i + 1);
-    List<int> usedValues = [];
-    var rng = Random();
+    List<int> values = List.generate(DIM, (i) => i + 1)..shuffle();
 
     for (int i = 0; i < DIM; ++i) {
       for (int j = 0; j < DIM; ++j) {
         int index = i * DIM + j;
-        if (_values[index] != null) continue;
+        if (board[index] != null) continue;
 
-        while (usedValues.length < values.length) {
-          int value = values[rng.nextInt(values.length)];
-          while (usedValues.contains(value)) {
-            value = values[rng.nextInt(values.length)];
-          }
-          usedValues.add(value);
+        for (int value in values) {
+          if (isValid(value, index, board)) {
+            board[index] = value;
 
-          if (isValid(value, index, _values)) {
-            setState(() {
-              _values[index] = value;
-            });
-
-            if (_solve()) {
+            if (_solve(board)) {
               return true;
             }
           }
         }
-        usedValues = [];
       }
     }
 
@@ -200,6 +202,40 @@ class _SudokuState extends State<SudokuBoard> {
     );
   }
 
+  Widget gameOver(String text) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(width: 1),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(text),
+      ),
+    );
+  }
+
+  void _checkWin(BuildContext context) {
+    if (isFinished(_values)) {
+      if (_solve(_values)) {
+        showDialog(
+          context: context,
+          builder: (c) {
+            return gameOver("YOU WIN!!!");
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (c) {
+            return gameOver("You lose...");
+          },
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -218,6 +254,7 @@ class _SudokuState extends State<SudokuBoard> {
                 _values[_selectedIndex!] = null;
               } else {
                 _values[_selectedIndex!] = value;
+                _checkWin(context);
               }
             });
           },
