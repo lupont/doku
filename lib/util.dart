@@ -1,24 +1,5 @@
 import 'main.dart';
 
-bool isFinished(List<int?> board) {
-  return board.every((cell) => cell != null);
-}
-
-bool isValid(int subject, int index, List<int?> board) {
-  int y = index % DIM;
-  int x = index ~/ DIM;
-
-  var buddies = getBuddies(x, y)!;
-
-  var row = buddies['row']!.map((i) => board[i]).toList();
-  var col = buddies['col']!.map((i) => board[i]).toList();
-  var sub = buddies['sub']!.map((i) => board[i]).toList();
-
-  return !row.contains(subject) &&
-      !col.contains(subject) &&
-      !sub.contains(subject);
-}
-
 Map<String, List<int>>? getBuddies(int x, int y) {
   if (x < 0 || y < 0 || x >= DIM || y >= DIM) {
     return null;

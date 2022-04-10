@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import 'picker.dart';
 import 'util.dart';
+import 'board.dart';
 
 const DIM = 9;
 
@@ -19,9 +18,7 @@ class SudokuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sudoku',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const SudokuHomePage(title: 'Sudoku'),
     );
   }
@@ -44,11 +41,7 @@ class SudokuHomePage extends StatelessWidget {
               children: [
                 GestureDetector(
                   child: Container(
-                    child: const Icon(
-                      Icons.add,
-                      size: 48,
-                      color: Colors.white,
-                    ),
+                    child: const Icon(Icons.add, size: 48, color: Colors.white),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.blue,
@@ -102,60 +95,7 @@ class SudokuBoard extends StatefulWidget {
 class _SudokuState extends State<SudokuBoard> {
   int? _selectedIndex;
 
-  List<int?> _values = List.generate(81, (_) => null);
-
-  void _generateBoard() {
-    do {
-      setState(() {
-        _values = List.generate(81, (_) => null);
-      });
-    } while (!_solve(_values));
-
-    List<int> indices = List.generate(81, (i) => i)..shuffle();
-
-    int i = 0;
-
-    while (i < indices.length) {
-      int index = indices[i];
-      int? oldValue = _values[index];
-      setState(() => _values[index] = null);
-
-      List<int?> copy = [..._values];
-
-      if (!_solve(copy)) {
-        setState(() => _values[index] = oldValue);
-      }
-
-      ++i;
-    }
-  }
-
-  bool _solve(List<int?> board) {
-    if (isFinished(board)) {
-      return true;
-    }
-
-    List<int> values = List.generate(DIM, (i) => i + 1)..shuffle();
-
-    for (int i = 0; i < DIM; ++i) {
-      for (int j = 0; j < DIM; ++j) {
-        int index = i * DIM + j;
-        if (board[index] != null) continue;
-
-        for (int value in values) {
-          if (isValid(value, index, board)) {
-            board[index] = value;
-
-            if (_solve(board)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-
-    return false;
-  }
+  Board _board = Board(3);
 
   void setSelected(int? index) {
     if (_selectedIndex == index) {
@@ -167,7 +107,7 @@ class _SudokuState extends State<SudokuBoard> {
 
   List<Widget> _getCells() {
     return List.generate(
-      81,
+      DIM * DIM,
       (i) {
         bool buddy = false;
         if (_selectedIndex != null) {
@@ -180,11 +120,11 @@ class _SudokuState extends State<SudokuBoard> {
         }
         var cell = Cell(
           index: i,
-          value: _values[i],
+          value: _board.at(i),
           buddy: buddy,
           highlight: _selectedIndex == null
               ? false
-              : _values[_selectedIndex!] == _values[i],
+              : _board.at(_selectedIndex!) == _board.at(i),
           selected: _selectedIndex == i,
         );
         double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
@@ -217,8 +157,8 @@ class _SudokuState extends State<SudokuBoard> {
   }
 
   void _checkWin(BuildContext context) {
-    if (isFinished(_values)) {
-      if (_solve(_values)) {
+    if (_board.isFinished()) {
+      if (_board.isCorrect()) {
         showDialog(
           context: context,
           builder: (c) {
@@ -250,10 +190,10 @@ class _SudokuState extends State<SudokuBoard> {
           enabled: _selectedIndex != null,
           onTap: (value) {
             setState(() {
-              if (_values[_selectedIndex!] == value) {
-                _values[_selectedIndex!] = null;
+              if (_board.at(_selectedIndex!) == value) {
+                _board.set(_selectedIndex!, null);
               } else {
-                _values[_selectedIndex!] = value;
+                _board.set(_selectedIndex!, value);
                 _checkWin(context);
               }
             });
@@ -262,7 +202,10 @@ class _SudokuState extends State<SudokuBoard> {
         IconButton(
           icon: const Icon(Icons.start),
           onPressed: () {
-            _generateBoard();
+            setState(() {
+              _board = Board(3);
+              _selectedIndex = null;
+            });
           },
         ),
       ],
