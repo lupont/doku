@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import 'picker.dart';
 import 'util.dart';
@@ -96,6 +97,7 @@ class _SudokuState extends State<SudokuBoard> {
   int? _selectedIndex;
 
   Board _board = Board(3);
+  List<bool> _checked = List.generate(DIM * DIM, (_) => false);
 
   void setSelected(int? index) {
     if (_selectedIndex == index) {
@@ -105,7 +107,7 @@ class _SudokuState extends State<SudokuBoard> {
     }
   }
 
-  List<Widget> _getCells() {
+  List<Container> _getCells() {
     return List.generate(
       DIM * DIM,
       (i) {
@@ -126,6 +128,7 @@ class _SudokuState extends State<SudokuBoard> {
               ? false
               : _board.at(_selectedIndex!) == _board.at(i),
           selected: _selectedIndex == i,
+          checked: _checked[i],
         );
         double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
         double bottom = i >= 18 && i <= 26 || i >= 45 && i <= 53 ? 3 : 0;
@@ -157,38 +160,49 @@ class _SudokuState extends State<SudokuBoard> {
   }
 
   void _checkWin(BuildContext context) {
+    const tickInterval = Duration(milliseconds: 30);
     if (_board.isFinished()) {
-      if (_board.isCorrect()) {
+      int index = 0;
+      Timer.periodic(tickInterval, (timer) {
+        setState(() {
+          if (index >= _checked.length) {
+            timer.cancel();
+          }
+          _checked[index++] = true;
+        });
+      });
+      Future.delayed(tickInterval * DIM * DIM, () {
         showDialog(
           context: context,
           builder: (c) {
-            return gameOver("YOU WIN!!!");
+            return gameOver(_board.isCorrect() ? "YOU WIN!!!" : "You lose...");
           },
         );
-      } else {
-        showDialog(
-          context: context,
-          builder: (c) {
-            return gameOver("You lose...");
-          },
-        );
-      }
+      });
     }
+  }
+
+  void _resetChecked() {
+    setState(() {
+      _checked = List.generate(DIM * DIM, (_) => false);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    var cells = _getCells();
     return Column(
       children: [
         GridView.count(
           crossAxisCount: 9,
           shrinkWrap: true,
           padding: const EdgeInsets.all(16),
-          children: _getCells(),
+          children: cells,
         ),
         Picker(
           enabled: _selectedIndex != null,
           onTap: (value) {
+            _resetChecked();
             setState(() {
               if (_board.at(_selectedIndex!) == value) {
                 _board.set(_selectedIndex!, null);
@@ -205,6 +219,7 @@ class _SudokuState extends State<SudokuBoard> {
             setState(() {
               _board = Board(3);
               _selectedIndex = null;
+              _resetChecked();
             });
           },
         ),
@@ -219,6 +234,7 @@ class Cell extends StatefulWidget {
   final bool selected;
   final bool highlight;
   final bool buddy;
+  final bool checked;
 
   const Cell({
     Key? key,
@@ -227,6 +243,7 @@ class Cell extends StatefulWidget {
     required this.selected,
     required this.highlight,
     required this.buddy,
+    required this.checked,
   }) : super(key: key);
 
   @override
@@ -246,6 +263,12 @@ class _CellState extends State<Cell> {
         : widget.highlight
             ? Colors.blue
             : Colors.black;
+
+    if (widget.checked) {
+      backgroundColor = Colors.green;
+      foregroundColor = Colors.white;
+    }
+
     return GestureDetector(
       child: Container(
         width: 40,

@@ -1,6 +1,6 @@
 import 'main.dart';
 
-Map<String, List<int>>? getBuddies(int x, int y) {
+Map<String, List<int>>? getBuddies(int x, int y, {bool self = false}) {
   if (x < 0 || y < 0 || x >= DIM || y >= DIM) {
     return null;
   }
@@ -10,13 +10,13 @@ Map<String, List<int>>? getBuddies(int x, int y) {
   List<int> subgrid = [];
 
   for (int i = 0; i < DIM; ++i) {
-    if (i * DIM != x) {
+    if (self || i * DIM != x) {
       row.add(i * DIM + y);
     }
   }
 
   for (int j = 0; j < DIM; ++j) {
-    if (j != y) {
+    if (self || j != y) {
       col.add(x * DIM + j);
     }
   }
@@ -26,7 +26,7 @@ Map<String, List<int>>? getBuddies(int x, int y) {
 
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 3; ++j) {
-      if ((i + startX) * DIM != x && (j + startY) != y) {
+      if (self || ((i + startX) * DIM != x && (j + startY) != y)) {
         subgrid.add((i + startX) * DIM + (j + startY));
       }
     }

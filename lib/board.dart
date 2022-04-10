@@ -36,11 +36,10 @@ class Board {
 
   void _generate() {
     do {
-      _values = List.generate(_dim * _dim * _dim * _dim, (_) => null);
+      _values = List.generate(_width * _width, (_) => null);
     } while (!_solve());
 
-    List<int> indices = List.generate(_dim * _dim * _dim * _dim, (i) => i)
-      ..shuffle();
+    List<int> indices = List.generate(_width * _width, (i) => i)..shuffle();
 
     int i = 0;
 
@@ -87,15 +86,70 @@ class Board {
     return false;
   }
 
+  bool eq(List<int?> a, List<int?> b) {
+    if (a.length != b.length) return false;
+
+    for (int i = 0; i < a.length; ++i) {
+      if (a[i] != b[i]) return false;
+    }
+
+    return true;
+  }
+
+  bool checkWin() {
+    final values = List.generate(_width, (i) => i + 1);
+
+    for (int i = 0; i < _width; ++i) {
+      var rowB = util.getBuddies(0, i, self: true)!;
+      var colB = util.getBuddies(i, 0, self: true)!;
+
+      var rrows = rowB['row']!.map((i) => _values[i]).toList();
+      rrows.sort();
+      var rcols = rowB['col']!.map((i) => _values[i]).toList();
+      rcols.sort();
+
+      var crows = colB['row']!.map((i) => _values[i]).toList();
+      crows.sort();
+      var ccols = colB['col']!.map((i) => _values[i]).toList();
+      ccols.sort();
+
+      if (!eq(rrows, values) ||
+          !eq(rcols, values) ||
+          !eq(crows, values) ||
+          !eq(ccols, values)) {
+        return false;
+      }
+    }
+
+    for (int i = 0; i < _dim; i += 3) {
+      for (int j = 0; j < _dim; j += 3) {
+        var sub = util
+            .getBuddies(i, j, self: true)!['sub']!
+            .map((i) => _values[i])
+            .toList();
+        sub.sort();
+        if (!eq(sub, values)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   bool isFinished() {
     return _values.every((e) => e != null);
   }
 
   bool isCorrect() {
     if (isFinished()) {
-      List<int?> copyValues = [..._values];
-      Board copy = Board.from(copyValues, _dim);
-      return copy._solve();
+      final won = checkWin();
+      if (won) {
+        print("WON!");
+        return true;
+      } else {
+        print("lost...");
+        return false;
+      }
     }
     return false;
   }
