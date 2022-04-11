@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'picker.dart';
-import 'util.dart';
 import 'board.dart';
+import 'picker.dart';
+import 'settings.dart';
+import 'util.dart';
 
 const DIM = 9;
 
@@ -25,43 +26,90 @@ class SudokuApp extends StatelessWidget {
   }
 }
 
-class SudokuHomePage extends StatelessWidget {
-  const SudokuHomePage({Key? key, required this.title}) : super(key: key);
+class Settings {
+  late bool gridHints;
+  late bool highlightSame;
+
+  Settings() {
+    gridHints = false;
+    highlightSame = false;
+  }
+
+  void set(String setting, dynamic value) {
+    switch (setting) {
+      case "grid_hints":
+        if (value is bool) {
+          gridHints = value;
+        }
+        break;
+      case "highlight_same":
+        if (value is bool) {
+          highlightSame = value;
+        }
+        break;
+    }
+  }
+}
+
+class SudokuHomePage extends StatefulWidget {
   final String title;
+  const SudokuHomePage({Key? key, required this.title}) : super(key: key);
+
+  @override
+  State<SudokuHomePage> createState() => _SudokuHomePageState();
+}
+
+class _SudokuHomePageState extends State<SudokuHomePage> {
+  final Settings _settings = Settings();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(widget.title),
       ),
       body: Center(
         child: Row(
-          children: <Widget>[
-            Column(
-              children: [
-                GestureDetector(
-                  child: Container(
-                    child: const Icon(Icons.add, size: 48, color: Colors.white),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.blue,
+          children: [
+            GestureDetector(
+              child: Container(
+                child: const Icon(Icons.add, size: 48, color: Colors.white),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.blue,
+                ),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GameWidget(settings: _settings),
+                  ),
+                );
+              },
+            ),
+            GestureDetector(
+              child: Container(
+                child:
+                    const Icon(Icons.settings, size: 48, color: Colors.white),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.blue,
+                ),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsPage(
+                      settings: _settings,
                     ),
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GameWidget(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-              mainAxisAlignment: MainAxisAlignment.center,
+                );
+              },
             ),
           ],
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         ),
       ),
     );
@@ -69,7 +117,8 @@ class SudokuHomePage extends StatelessWidget {
 }
 
 class GameWidget extends StatelessWidget {
-  const GameWidget({Key? key}) : super(key: key);
+  final Settings settings;
+  const GameWidget({Key? key, required this.settings}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +126,8 @@ class GameWidget extends StatelessWidget {
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            SudokuBoard(),
+          children: [
+            SudokuBoard(settings: settings),
           ],
         ),
       ),
@@ -87,7 +136,8 @@ class GameWidget extends StatelessWidget {
 }
 
 class SudokuBoard extends StatefulWidget {
-  const SudokuBoard({Key? key}) : super(key: key);
+  final Settings settings;
+  const SudokuBoard({Key? key, required this.settings}) : super(key: key);
 
   @override
   State<SudokuBoard> createState() => _SudokuState();
@@ -129,6 +179,7 @@ class _SudokuState extends State<SudokuBoard> {
               : _board.at(_selectedIndex!) == _board.at(i),
           selected: _selectedIndex == i,
           checked: _checked[i],
+          settings: widget.settings,
         );
         double right = i % 9 == 2 || i % 9 == 5 ? 3 : 0;
         double bottom = i >= 18 && i <= 26 || i >= 45 && i <= 53 ? 3 : 0;
@@ -235,6 +286,7 @@ class Cell extends StatefulWidget {
   final bool highlight;
   final bool buddy;
   final bool checked;
+  final Settings settings;
 
   const Cell({
     Key? key,
@@ -244,6 +296,7 @@ class Cell extends StatefulWidget {
     required this.highlight,
     required this.buddy,
     required this.checked,
+    required this.settings,
   }) : super(key: key);
 
   @override
@@ -255,12 +308,12 @@ class _CellState extends State<Cell> {
   Widget build(BuildContext context) {
     Color backgroundColor = widget.selected
         ? Colors.blue
-        : widget.buddy
+        : widget.buddy && widget.settings.gridHints
             ? const Color.fromARGB(255, 230, 230, 230)
             : Colors.white;
     Color foregroundColor = widget.selected
         ? Colors.white
-        : widget.highlight
+        : widget.highlight && widget.settings.highlightSame
             ? Colors.blue
             : Colors.black;
 
