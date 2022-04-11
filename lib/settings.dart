@@ -89,7 +89,7 @@ class _SettingsState extends State<SettingsPage> {
             },
           ),
           BoolEntry(
-            icon: Icons.flashlight_on,
+            icon: Icons.opacity,
             title: const Text("Pre-fill different color"),
             initialValue: widget.settings.prefillDifferentColor,
             subtitleBuilder: (value) {
