@@ -123,9 +123,22 @@ class _SudokuHomePageState extends State<SudokuHomePage> {
   }
 }
 
-class GameWidget extends StatelessWidget {
+class GameWidget extends StatefulWidget {
   final Settings settings;
   const GameWidget({Key? key, required this.settings}) : super(key: key);
+
+  @override
+  State<GameWidget> createState() => _GameState();
+}
+
+class _GameState extends State<GameWidget> {
+  late SudokuBoard _board;
+
+  @override
+  void initState() {
+    _board = SudokuBoard(settings: widget.settings, key: UniqueKey());
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +146,16 @@ class GameWidget extends StatelessWidget {
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SudokuBoard(settings: settings),
-          ],
+          children: [_board],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.refresh),
+        onPressed: () {
+          setState(() {
+            _board = SudokuBoard(settings: widget.settings, key: UniqueKey());
+          });
+        },
       ),
     );
   }
@@ -269,16 +288,6 @@ class _SudokuState extends State<SudokuBoard> {
                 _board.set(_selectedIndex!, value);
                 _checkWin(context);
               }
-            });
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.start),
-          onPressed: () {
-            setState(() {
-              _board = Board(3);
-              _selectedIndex = null;
-              _resetChecked();
             });
           },
         ),
