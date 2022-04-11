@@ -1,22 +1,30 @@
 import 'util.dart' as util;
 
-import 'dart:math';
-
 class Board {
   late List<int?> _values;
+  late List<bool> _prefilled;
   late int _dim;
   late int _width;
 
   Board(int dim) {
-    _values = List.generate(dim * dim * dim, (i) => null);
+    _values = List.generate(dim * dim * dim * dim, (i) => null);
+    _prefilled = List.generate(dim * dim * dim * dim, (i) => false);
     _dim = dim;
     _width = dim * dim;
 
     _generate();
   }
 
-  Board.from(List<int?> values, int dim) {
+  bool isPrefilled(int index) {
+    if (index < 0 || index >= _prefilled.length) {
+      return false;
+    }
+    return _prefilled[index];
+  }
+
+  Board.from(List<int?> values, List<bool> prefilled, int dim) {
     _values = values;
+    _prefilled = prefilled;
     _dim = dim;
     _width = dim * dim;
   }
@@ -31,6 +39,7 @@ class Board {
   void set(int index, int? value) {
     if (index >= 0 && index < _values.length) {
       _values[index] = value;
+      _prefilled[index] = false;
     }
   }
 
@@ -47,12 +56,15 @@ class Board {
       int index = indices[i];
       int? oldValue = _values[index];
       _values[index] = null;
+      _prefilled[index] = false;
 
       List<int?> copyValues = [..._values];
-      Board copy = Board.from(copyValues, _dim);
+      List<bool> copyPrefilled = [..._prefilled];
+      Board copy = Board.from(copyValues, copyPrefilled, _dim);
 
       if (!copy._solve()) {
         _values[index] = oldValue;
+        _prefilled[index] = true;
       }
 
       ++i;
@@ -74,6 +86,7 @@ class Board {
         for (int value in values) {
           if (isValid(value, index)) {
             _values[index] = value;
+            _prefilled[index] = true;
 
             if (_solve()) {
               return true;

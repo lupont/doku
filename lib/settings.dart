@@ -49,6 +49,22 @@ class _SettingsState extends State<SettingsPage> {
               widget.settings.set("highlight_same", value);
             },
           ),
+          BoolEntry(
+            icon: Icons.flashlight_on,
+            title: const Text("Pre-fill different color"),
+            initialValue: widget.settings.prefillDifferentColor,
+            subtitleBuilder: (value) {
+              if (value) {
+                return const Text("Pre-filled cells will have another color.");
+              } else {
+                return const Text(
+                    "Pre-filled cells will not have another color.");
+              }
+            },
+            onChange: (value) {
+              widget.settings.set("prefill_different_color", value);
+            },
+          ),
         ],
       ),
     );

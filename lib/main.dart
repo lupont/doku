@@ -29,10 +29,12 @@ class SudokuApp extends StatelessWidget {
 class Settings {
   late bool gridHints;
   late bool highlightSame;
+  late bool prefillDifferentColor;
 
   Settings() {
     gridHints = false;
-    highlightSame = false;
+    highlightSame = true;
+    prefillDifferentColor = true;
   }
 
   void set(String setting, dynamic value) {
@@ -45,6 +47,11 @@ class Settings {
       case "highlight_same":
         if (value is bool) {
           highlightSame = value;
+        }
+        break;
+      case "prefill_different_color":
+        if (value is bool) {
+          prefillDifferentColor = value;
         }
         break;
     }
@@ -173,6 +180,7 @@ class _SudokuState extends State<SudokuBoard> {
         var cell = Cell(
           index: i,
           value: _board.at(i),
+          prefilled: _board.isPrefilled(i),
           buddy: buddy,
           highlight: _selectedIndex == null
               ? false
@@ -286,6 +294,7 @@ class Cell extends StatefulWidget {
   final bool highlight;
   final bool buddy;
   final bool checked;
+  final bool prefilled;
   final Settings settings;
 
   const Cell({
@@ -297,6 +306,7 @@ class Cell extends StatefulWidget {
     required this.buddy,
     required this.checked,
     required this.settings,
+    required this.prefilled,
   }) : super(key: key);
 
   @override
@@ -315,7 +325,9 @@ class _CellState extends State<Cell> {
         ? Colors.white
         : widget.highlight && widget.settings.highlightSame
             ? Colors.blue
-            : Colors.black;
+            : widget.prefilled && widget.settings.prefillDifferentColor
+                ? const Color.fromARGB(255, 90, 90, 90)
+                : Colors.black;
 
     if (widget.checked) {
       backgroundColor = Colors.green;
