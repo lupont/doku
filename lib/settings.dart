@@ -1,6 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'main.dart';
+class Settings {
+  late SharedPreferences _prefs;
+
+  Future init() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  bool get gridHints {
+    return _prefs.getBool("grid_hints") ?? false;
+  }
+
+  bool get highlightSame {
+    return _prefs.getBool("highlight_same") ?? false;
+  }
+
+  bool get prefillDifferentColor {
+    return _prefs.getBool("prefill_different_color") ?? false;
+  }
+
+  Future set(String setting, dynamic value) async {
+    switch (setting) {
+      case "grid_hints":
+        if (value is bool) {
+          _prefs.setBool("grid_hints", value);
+        }
+        break;
+      case "highlight_same":
+        if (value is bool) {
+          _prefs.setBool("highlight_same", value);
+        }
+        break;
+      case "prefill_different_color":
+        if (value is bool) {
+          _prefs.setBool("prefill_different_color", value);
+        }
+        break;
+    }
+  }
+}
 
 class SettingsPage extends StatefulWidget {
   final Settings settings;

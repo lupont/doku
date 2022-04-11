@@ -26,38 +26,6 @@ class SudokuApp extends StatelessWidget {
   }
 }
 
-class Settings {
-  late bool gridHints;
-  late bool highlightSame;
-  late bool prefillDifferentColor;
-
-  Settings() {
-    gridHints = false;
-    highlightSame = true;
-    prefillDifferentColor = true;
-  }
-
-  void set(String setting, dynamic value) {
-    switch (setting) {
-      case "grid_hints":
-        if (value is bool) {
-          gridHints = value;
-        }
-        break;
-      case "highlight_same":
-        if (value is bool) {
-          highlightSame = value;
-        }
-        break;
-      case "prefill_different_color":
-        if (value is bool) {
-          prefillDifferentColor = value;
-        }
-        break;
-    }
-  }
-}
-
 class SudokuHomePage extends StatefulWidget {
   final String title;
   const SudokuHomePage({Key? key, required this.title}) : super(key: key);
@@ -68,6 +36,17 @@ class SudokuHomePage extends StatefulWidget {
 
 class _SudokuHomePageState extends State<SudokuHomePage> {
   final Settings _settings = Settings();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    _settings.init().then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,50 +54,53 @@ class _SudokuHomePageState extends State<SudokuHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Row(
-          children: [
-            GestureDetector(
-              child: Container(
-                child: const Icon(Icons.add, size: 48, color: Colors.white),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.blue,
-                ),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GameWidget(settings: _settings),
-                  ),
-                );
-              },
-            ),
-            GestureDetector(
-              child: Container(
-                child:
-                    const Icon(Icons.settings, size: 48, color: Colors.white),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.blue,
-                ),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SettingsPage(
-                      settings: _settings,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: Row(
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      child:
+                          const Icon(Icons.add, size: 48, color: Colors.white),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.blue,
+                      ),
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GameWidget(settings: _settings),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                  GestureDetector(
+                    child: Container(
+                      child: const Icon(Icons.settings,
+                          size: 48, color: Colors.white),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.blue,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SettingsPage(
+                            settings: _settings,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              ),
             ),
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        ),
-      ),
     );
   }
 }
@@ -172,7 +154,7 @@ class SudokuBoard extends StatefulWidget {
 class _SudokuState extends State<SudokuBoard> {
   int? _selectedIndex;
 
-  Board _board = Board(3);
+  final Board _board = Board(3);
   List<bool> _checked = List.generate(DIM * DIM, (_) => false);
 
   void setSelected(int? index) {
