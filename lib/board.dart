@@ -7,10 +7,12 @@ class Board {
   late int _width;
 
   Board(int dim) {
-    _values = List.generate(dim * dim * dim * dim, (i) => null);
-    _prefilled = List.generate(dim * dim * dim * dim, (i) => false);
+    final width = dim * dim;
+    _values = List.generate(width * width, (i) => null);
+    _prefilled = List.generate(width * width, (i) => false);
+
     _dim = dim;
-    _width = dim * dim;
+    _width = width;
 
     _generate();
   }
@@ -22,11 +24,11 @@ class Board {
     return _prefilled[index];
   }
 
-  Board.from(List<int?> values, List<bool> prefilled, int dim) {
-    _values = values;
-    _prefilled = prefilled;
-    _dim = dim;
-    _width = dim * dim;
+  Board.from(Board board) {
+    _values = [...board._values];
+    _prefilled = [...board._prefilled];
+    _dim = board._dim;
+    _width = board._dim * board._dim;
   }
 
   int? at(int index) {
@@ -55,12 +57,11 @@ class Board {
     while (i < indices.length) {
       int index = indices[i];
       int? oldValue = _values[index];
+
       _values[index] = null;
       _prefilled[index] = false;
 
-      List<int?> copyValues = [..._values];
-      List<bool> copyPrefilled = [..._prefilled];
-      Board copy = Board.from(copyValues, copyPrefilled, _dim);
+      Board copy = Board.from(this);
 
       if (!copy._solve()) {
         _values[index] = oldValue;
